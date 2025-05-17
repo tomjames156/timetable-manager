@@ -1,6 +1,8 @@
 package ooad.capstone.lockedin;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,5 +22,9 @@ public class TaskEditor extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    public void submitTask(View v){
+        Toast.makeText(this, "Submitted Task", Toast.LENGTH_SHORT).show();
     }
 }
