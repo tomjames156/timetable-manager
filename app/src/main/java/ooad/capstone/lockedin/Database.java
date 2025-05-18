@@ -1,15 +1,17 @@
 package ooad.capstone.lockedin;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 
 public class Database extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "Tasks";
+    private static final String DATABASE_NAME = "Database";
     private static final int DATABASE_VERSION = 1;
 
     public Database(Context context){
@@ -17,28 +19,27 @@ public class Database extends SQLiteOpenHelper {
     }
 
     @Override
-    public void onCreate(SQLiteDatabase sqLiteDatabase) {
-
+    public void onCreate(SQLiteDatabase db) {
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+    public void onUpgrade(SQLiteDatabase db, int i1, int i2) {
     }
 
-    public void checkTable(String date){
-        String create = "CREATE TABLE IF NOT EXISTS `" + date +
-                "` (`ID` integer, `TASK` text , `From` text, `To` text, `Color` text);";
+
+    public void checkTable(String date) {
+        String create = "CREATE TABLE IF NOT EXISTS `"+date+
+                "` (`ID` integer, `TASK` text, `From` text, `To` text, `Color` text );";
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL(create);
     }
 
-    public void addTask(Task t, String date){
-        this.checkTable(date);
+    public void addTask(Task t, String date) {
+        checkTable(date);
         SQLiteDatabase db = this.getWritableDatabase();
-        String insert = "INSERT INTO `" + date + "` (`ID`, `Task`, `From`, `To`, `Color`) VALUES " +
-                "( '" + t.getID() + "', '" + t.getID() + "', '" + t.getFromToString() + "', '" + t.getToToString() +
-                "', '" + t.getColor() + "' );";
+        String insert = "INSERT INTO `"+date+"` (`ID`, `Task`, `From`, `To`, `Color`) VALUES " +
+                "( '"+t.getID()+"', '"+t.getTask()+"', '"+t.getFromToString()+"', '"+t.getToToString()+
+                "', '"+t.getColor()+"' );";
         db.execSQL(insert);
     }
 
@@ -46,7 +47,7 @@ public class Database extends SQLiteOpenHelper {
         checkTable(date);
         SQLiteDatabase db = this.getReadableDatabase();
         ArrayList<Task> tasks = new ArrayList<>();
-        String select = "SELECT = FROM `" + date + "`;";
+        String select = "SELECT * FROM `" + date + "`;";
         Cursor cursor = db.rawQuery(select, null);
         cursor.moveToFirst();
         if(cursor.moveToFirst()){
