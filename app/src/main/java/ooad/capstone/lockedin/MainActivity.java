@@ -1,8 +1,14 @@
 package ooad.capstone.lockedin;
 
+import android.annotation.SuppressLint;
+import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -14,18 +20,24 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+
 public class MainActivity extends AppCompatActivity {
+
+    private LocalDate showedDate;
+    private ArrayList<Task> tasks;
+    private final DateTimeFormatter mainDate = DateTimeFormatter.ofPattern("EEEE dd/MM");
+    private Database database;
+    private TextView date;
+    private ListAdapter listAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-
-        TextView date = findViewById(R.id.date);
-        ImageView left = findViewById(R.id.left);
-        ImageView right = findViewById(R.id.right);
-        ListView listview = findViewById(R.id.listview);
-        LinearLayout add = findViewById(R.id.add);
 
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -33,10 +45,116 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        date = findViewById(R.id.date);
+        ImageView left = findViewById(R.id.left);
+        ImageView right = findViewById(R.id.right);
+        ListView listview = findViewById(R.id.listview);
+        LinearLayout add = findViewById(R.id.add);
+
+        tasks = new ArrayList<>();
+        listAdapter = new ListAdapter();
+        listview.setAdapter(listAdapter);
+        database = new Database(this);
+
+        showedDate = LocalDate.now();
+        RefreshData();
+
+        date.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(this, (datePicker, year, month, day) -> {
+                showedDate = LocalDate.of(year, month + 1, day);
+                RefreshData();
+            }, showedDate.getYear(), showedDate.getMonthValue() - 1, showedDate.getDayOfMonth());
+            datePickerDialog.show();
+        });
+
+        left.setOnClickListener(v -> {
+            showedDate = showedDate.minusDays(1);
+            RefreshData();
+        });
+
+        right.setOnClickListener(v ->{
+            showedDate = showedDate.plusDays(1);
+            RefreshData();
+        });
+
+        add.setOnClickListener(v -> {
+            Intent intent = new Intent(this, TaskEditor.class);
+            intent.putExtra("Date", showedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            startActivity(intent);
+        });
     }
 
-    public void addNewTask(View v){
-        Intent i = new Intent(this, TaskEditor.class);
-        startActivity(i);
+    @Override
+    public void onResume(){
+        super.onResume();
+        RefreshData();
+    }
+
+    private void RefreshData(){
+        String dateFormat = "yyyy-MM-dd";
+        date.setText(showedDate.format(mainDate));
+        ArrayList<Task> ts = database.getAllTasks(showedDate.format(DateTimeFormatter.ofPattern(dateFormat)));
+        Collections.sort(ts);
+        tasks = ts;
+        listAdapter.notifyDataSetChanged();
+    }
+
+    public class ListAdapter extends BaseAdapter{
+
+        public ListAdapter(){
+
+        }
+
+        @Override
+        public int getCount() {
+            return tasks.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return tasks.get(i);
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            LayoutInflater inflater = getLayoutInflater();
+            @SuppressLint({"ViewHolder", "InflateParams"})
+            View v = inflater.inflate(R.layout.task, null);
+
+            TextView from = v.findViewById(R.id.from);
+            TextView to = v.findViewById(R.id.to);
+            TextView task = v.findViewById(R.id.task);
+
+            Task t = tasks.get(i);
+
+            from.setText(t.getFromToString());
+            to.setText(t.getToToString());
+            task.setText(t.getTask());
+
+            GradientDrawable backDrawable = (GradientDrawable) task.getBackground();
+            backDrawable.setColor(t.getColorID(MainActivity.this));
+
+            task.setOnLongClickListener(v2 -> {
+                String dateFormat = "yyyy-MM-dd";
+
+                Intent intent = new Intent(MainActivity.this, TaskEditor.class);
+                intent.putExtra("ID", t.getID());
+                intent.putExtra("Task", t.getTask());
+                intent.putExtra("From", t.getFromToString());
+                intent.putExtra("To", t.getToToString());
+                intent.putExtra("Color", t.getColor());
+                intent.putExtra("Date", showedDate.format(DateTimeFormatter.ofPattern(dateFormat)));
+                startActivity(intent);
+                return true;
+            });
+
+            return v;
+        }
     }
 }
