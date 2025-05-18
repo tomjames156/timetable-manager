@@ -9,8 +9,11 @@ import java.util.ArrayList;
 
 public class Database extends SQLiteOpenHelper {
 
+    private static final String DATABASE_NAME = "Tasks";
+    private static final int DATABASE_VERSION = 1;
+
     public Database(Context context){
-        super(context, "Database", null, 1);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
