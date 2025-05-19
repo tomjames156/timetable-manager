@@ -22,8 +22,10 @@
             android:layout_centerInParent="true"
             android:gravity="center"
             android:text="Date"
+            android:textStyle="bold"
             android:textColor="@color/black"
-            android:textSize="30sp"/>
+            android:fontFamily="monospace"
+            android:textSize="22sp"/>
 
         <ImageView
             android:id="@+id/left"
